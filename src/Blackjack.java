@@ -3,20 +3,39 @@ import java.util.*;
 public class Blackjack {
     private int numPlayers;
     private Map<String, List<String>> playerHands;
+    private List<String> dealer;
     private Deck gameDeck;
+    private Scanner console;
 
+
+    // method: BlackJack (no return type)
+    // purpose: 
     public Blackjack(int numPlayers, List<String> playerNames){
         Map<String, List<String>> playersEmpty = new HashMap<>();
         for(String name : playerNames){
             playersEmpty.put(name, new ArrayList<>());
         }
-        playersEmpty.put("Dealer", new ArrayList<>());
         
-
-        playerHands = playersEmpty;
         this.numPlayers = numPlayers;
+        playerHands = playersEmpty;
+        dealer = new ArrayList<>();
+        console = new Scanner(System.in);
         gameDeck = new Deck(1);
     }
+
+
+    public void blackjackRound(){
+        startingHands();
+        showHands();
+        for(String player : playerHands.keySet()){
+            turn(player);
+            System.out.println();
+        }
+        showHands();
+
+
+    }
+
 
     public void startingHands(){
         gameDeck.shuffle();
@@ -26,19 +45,82 @@ public class Blackjack {
             playerHand.add(gameDeck.deal());
             playerHands.put(player, playerHand);
         }
+
+        dealer.add(gameDeck.deal());
+        dealer.add(gameDeck.deal());
     }
 
     public void showHands(){
-        for(String player : playerHands.keySet()){
-            List<String> hand = playerHands.get(player);
-            System.out.println(player + ": " + hand + " " + total(hand));
-            System.out.println();
+        if(dealer.size() == 2){
+            for(String player : playerHands.keySet()){
+                List<String> hand = playerHands.get(player);
+                System.out.println(player + ": " + hand + " " + printTotal(total(hand)));
+                System.out.println();
+            }
+            if(total(dealer) == 21){
+                System.out.println("Dealer: " + dealer + total(dealer));
+            } else {
+                System.out.println("Dealer: " + dealer.get(0) + ", CARD 2");
+            }
+
+        } else {
+            for(String player : playerHands.keySet()){
+                List<String> hand = playerHands.get(player);
+                System.out.println(player + ": " + hand + " " + total(hand));
+                System.out.println();
+            }
+                System.out.println("Dealer: " + dealer);
         }
     }
 
-    public String total(List<String> hand){
+    public void turn(String player){
+        List<String> currentHand = playerHands.get(player);
+        int handTotal = total(currentHand);
+        
+        System.out.println();
+        if(handTotal == 21){
+            System.out.println("You already have blackjack. Sit the rest of this round out winner!");
+        } else {
+            System.out.println("What Would You Like To Do " + player + "?");
+            System.out.println("Hand: " + currentHand + " " + printTotal(handTotal));
+            System.out.println("Hit (H)");
+            System.out.println("Stay (S)");
+            System.out.print("Choice: ");
+            String choice = console.nextLine();
+
+            while(!choice.equals("S")){
+                if(choice.equals("H")){
+                    String card = gameDeck.deal();
+                    currentHand.add(card);
+                    aceCheck(currentHand);
+                    playerHands.put(player, currentHand);
+                    handTotal = total(currentHand);
+                    System.out.println();
+                    System.out.println("Card: " + card);
+                    System.out.println("Hand: " + currentHand + printTotal(handTotal));
+                    System.out.println();
+                }
+
+                if(handTotal == 21){
+                    System.out.println("You have blackjack. Congrats!");
+                    break;
+                } else if (handTotal > 21){
+                    System.out.println("You have gone bust. Better luck next round!");
+                    break;
+                }
+
+                System.out.println("What Would You Like To Do " + player + "?");
+                System.out.println("Hand: " + currentHand + " " + printTotal(handTotal));
+                System.out.println("Hit (H)");
+                System.out.println("Stay (S)");
+                System.out.print("Choice: ");
+                choice = console.nextLine();
+            }
+        }
+    }
+
+    public int total(List<String> hand){
         int total = 0;
-        String totalString = "";
         
         for (String card : hand){
             int index = card.indexOf(" ");
@@ -57,16 +139,31 @@ public class Blackjack {
                 int cardInt = Integer.parseInt(cardValue);
                 total = total + cardInt;
             }
+        }
+            return total;
+    }
 
-            if (total == 21){
-                totalString = "(" + total + ")" + " [BLACKJACK]";
-            } else if (total > 21){
-                totalString = "(" + total + ")" + " [BUST]";
-            } else {
-                totalString = "(" + total + ")";
+    public String printTotal(int total){
+        String totalString = "";
+        if(total == 21){
+            totalString = "(" + total + ") [BLACKJACK]";
+        } else if(total > 21){
+            totalString = "(" + total + ") [BUST]";
+        } else {
+            totalString = "(" + total + ")";
+        }
+        return totalString;
+    }
+
+    public void aceCheck(List<String> hand){
+        for(int i = 0; i < hand.size() -1; i++){
+            String card = hand.get(i);
+            if(card.equals("Ace of Spades") || card.equals("Ace of Clubs") || card.equals("Ace of Hearts") || card.equals("Ace of Hearts")){
+                hand.add(card);
+                hand.remove(i);
+                i--;
             }
         }
-
-        return totalString;
+        
     }
 }
