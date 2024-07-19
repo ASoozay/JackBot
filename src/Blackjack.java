@@ -25,20 +25,27 @@ public class Blackjack {
 
 
     public void blackjackRound(){
+        handsReset();
+        gameDeck.reset();
+        gameDeck.shuffle();
         startingHands();
-        showHands();
-        for(String player : playerHands.keySet()){
-            turn(player);
-            System.out.println();
+        showHands(0);
+        if(total(dealer) == 21){
+            System.out.println(dealer + printTotal(total(dealer)));
+            System.out.println("The dealer has blackjack. You lose");
+        } else {
+            for(String player : playerHands.keySet()){
+                turn(player);
+                System.out.println();
+            }
         }
-        showHands();
-
-
+        showHands(1);
+        dealerTurn();
+        winOrLose();
     }
 
 
     public void startingHands(){
-        gameDeck.shuffle();
         for(String player : playerHands.keySet()){
             List<String> playerHand = playerHands.get(player);
             playerHand.add(gameDeck.deal());
@@ -50,8 +57,8 @@ public class Blackjack {
         dealer.add(gameDeck.deal());
     }
 
-    public void showHands(){
-        if(dealer.size() == 2){
+    public void showHands(int turns){
+        if(turns == 0){
             for(String player : playerHands.keySet()){
                 List<String> hand = playerHands.get(player);
                 System.out.println(player + ": " + hand + " " + printTotal(total(hand)));
@@ -119,6 +126,29 @@ public class Blackjack {
         }
     }
 
+    public void dealerTurn(){
+        System.out.println();
+        while(total(dealer) < 18){
+            String card = gameDeck.deal();
+            dealer.add(card);
+            System.out.println("Card: " + card);
+            System.out.println("Dealer's Hand: " + dealer + printTotal(total(dealer)));
+            System.out.println();
+
+            if(total(dealer) >= 17){
+                if(total(dealer) == 21){
+                    System.out.println("The dealer has blackjack");
+                } else {
+                    System.out.println("The dealer has " + total(dealer));
+                    if(total(dealer) > 21){
+                        System.out.println("The dealer has gone bust");
+                    }
+                }
+                break;
+            }
+        }
+    }
+
     public int total(List<String> hand){
         int total = 0;
         
@@ -155,6 +185,42 @@ public class Blackjack {
         return totalString;
     }
 
+    public void winOrLose(){
+        List<String> winners = new ArrayList<>();
+        List<String> losers = new ArrayList<>();
+        List<String> push = new ArrayList<>();
+        int dealerTotal = total(dealer);
+
+        if(dealerTotal > 21){
+            for(String player : playerHands.keySet()){
+                int playerTotal = total(playerHands.get(player));
+                if(playerTotal <= 21){
+                    winners.add(player);
+                } else {
+                    losers.add(player);
+                }
+            }
+        } else {
+            for(String player : playerHands.keySet()){
+                int playerTotal = total(playerHands.get(player));
+                if(playerTotal > 21){
+                    losers.add(player);
+                } else if(playerTotal > dealerTotal){
+                    winners.add(player);
+                } else if(playerTotal == dealerTotal){
+                    push.add(player);
+                } else if(playerTotal < dealerTotal){
+                    losers.add(player);
+                }
+            }
+        }
+        System.out.println("Winners: " + winners);
+        System.out.println("Losers: " + losers);
+        System.out.println("Push: " + push);
+
+    }
+
+
     public void aceCheck(List<String> hand){
         for(int i = 0; i < hand.size() -1; i++){
             String card = hand.get(i);
@@ -165,5 +231,14 @@ public class Blackjack {
             }
         }
         
+    }
+
+    public void handsReset(){
+        for(String player : playerHands.keySet()){
+            List<String> playerHand = playerHands.get(player);
+            playerHand.clear();
+            playerHands.put(player, playerHand);
+            dealer.clear();
+        }
     }
 }
