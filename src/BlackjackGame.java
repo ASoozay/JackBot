@@ -4,10 +4,10 @@ public class BlackjackGame {
     public static void main(String[] args){
         Scanner console = new Scanner(System.in);
         List<String> players = new ArrayList<>();
-        players.add("Andrew");
-        players.add("Jack");
-        players.add("Tyler");
-        players.add("Dorian");
+        players.add("Player1");
+        players.add("Player2");
+        players.add("Player3");
+        players.add("Player4");
 
         Blackjack blackjack = new Blackjack(4, players);
 
